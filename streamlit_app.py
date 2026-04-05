@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 # Utility functions
 @st.cache_data
-def load_data(path='Customer-Churn.csv'):
+def load_data(path='Customer_Churn.csv'):
     df = pd.read_csv(path)
     return df
 
@@ -74,7 +74,7 @@ def preprocess_input(user_input, prep):
 
 
 @st.cache_resource
-def load_model(path='ada_boost_churn_model.pkl'):
+def load_model(path='Saved ML models/tuned_xgb_optuna_model.joblib'):
     print(f"[DEBUG] load_model: loading model from {path}")
     model = joblib.load(path)
     print(f"[DEBUG] load_model: model type={type(model)}")
@@ -83,7 +83,7 @@ def load_model(path='ada_boost_churn_model.pkl'):
 
 def main():
     st.set_page_config(page_title='Churn Prediction', layout='centered')
-    st.title('Telecom Customer Churn Prediction ⚡')
+    st.title('📲 Telecom Customer Churn Prediction 🙅')
 
     # Load data and preprocessor
     df = load_data()
@@ -105,15 +105,21 @@ def main():
         cols_to_ask = [c for c in sample.columns if c not in ['customerID', 'Churn', 'tenure', 'tenure_bin']]
 
         for col in cols_to_ask:
-            if sample[col].dtype == 'object' or sample[col].dtype.name == 'category':
+            if pd.api.types.is_numeric_dtype(sample[col]):
+                unique_vals = sample[col].dropna().unique()
+                if len(unique_vals) == 2 and set(unique_vals) == {0, 1}:
+                    # binary, like SeniorCitizen
+                    user_input[col] = st.selectbox(col, [0, 1])
+                else:
+                    # continuous numeric
+                    minv = float(sample[col].min())
+                    maxv = float(sample[col].max())
+                    default = float(sample[col].median())
+                    user_input[col] = st.number_input(col, value=default, min_value=minv, max_value=maxv)
+            else:
+                # categorical
                 opts = sorted(sample[col].dropna().unique().tolist())
                 user_input[col] = st.selectbox(col, opts)
-            else:
-                # numeric (e.g., SeniorCitizen)
-                minv = int(sample[col].min()) if pd.api.types.is_integer_dtype(sample[col]) else float(sample[col].min())
-                maxv = int(sample[col].max()) if pd.api.types.is_integer_dtype(sample[col]) else float(sample[col].max())
-                default = int(sample[col].median()) if pd.api.types.is_integer_dtype(sample[col]) else float(sample[col].median())
-                user_input[col] = st.number_input(col, value=default, min_value=minv, max_value=maxv)
 
         submitted = st.form_submit_button('Predict')
 
@@ -123,20 +129,17 @@ def main():
         pred_proba = model.predict_proba(X_in)[0][1]
         pred_class = model.predict(X_in)[0]
 
-        # Console debug prints
-        print(f"[DEBUG] main: user_input={user_input}")
-        print(f"[DEBUG] main: X_in_shape={X_in.shape}, first10={X_in.flatten()[:10].tolist()}")
-        print(f"[DEBUG] main: pred_class={int(pred_class)}, pred_proba={float(pred_proba)}")
-
         st.write('### Prediction Result')
         churn_text = 'Yes' if pred_class == 1 else 'No'
         st.write(f'**Churn:** {churn_text}')
         st.write(f'**Churn probability:** {pred_proba:.2f}')
 
-        # Debug information for troubleshooting
-        if st.checkbox('Show debug info'):
-            st.write('**Raw input**', user_input)
+        # Debug information
+        st.write(f"Debug: Form submitted: {submitted}")
+        st.write(f"Debug: User input: {user_input}")
+        st.write(f"Debug: pred_class={pred_class}, pred_proba={pred_proba:.4f}")
 
+        if st.checkbox('Show preprocessing debug'):
             # Recompute interim preprocessing steps for display
             bins, labels = prep['tenure_bins']
             df_in = pd.DataFrame([user_input])
@@ -160,8 +163,6 @@ def main():
             # Show which dummy features are non-zero
             nonzero = [(col, int(val)) for col, val in zip(prep['template_columns'], df_reindexed.iloc[0]) if val != 0]
             st.write('**Non-zero feature dummies**', nonzero)
-
-        st.success('Prediction complete ✅')
 
     st.markdown('---')
     st.markdown('**Notes:** This app replicates preprocessing used in the notebook: tenure is binned into `tenure_bin`, categorical variables are one-hot encoded with `drop_first=True`, and features are scaled with `StandardScaler`.')

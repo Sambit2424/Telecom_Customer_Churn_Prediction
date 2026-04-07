@@ -60,13 +60,18 @@ This workflow reflects the complete progression used in the notebooks: from raw 
 
 - **Programming language:** Python 3.12+
 - **Data processing:** `pandas`, `numpy`
-- **Visualization & EDA:** `matplotlib`,`seaborn`
+- **Visualization & EDA:** `matplotlib`, `seaborn`
 - **Machine learning:** `scikit-learn` (`DecisionTreeClassifier`, `RandomForestClassifier`, `AdaBoostClassifier`, `LogisticRegression`)
 - **Gradient boosting:** `xgboost`, `lightgbm`, `catboost`
 - **Imbalanced data handling:** `imbalanced-learn` (`SMOTE`, `SMOTEENN`, `ADASYN`)
 - **Hyperparameter tuning:** `optuna` (Bayesian Optimization), `scikit-learn` `RandomizedSearchCV`
 - **Model serialization:** `joblib`
-- **Deployment:** `streamlit`, `AWS EC2`
+- **API framework:** `fastapi`, `uvicorn`, `pydantic`
+- **Experiment tracking:** `mlflow`
+- **Deployment & containers:** `Docker`, `docker-compose`
+- **Interactive UI:** `streamlit`
+- **Testing:** `pytest`, `locust`
+- **Logging:** Python `logging` with rotating file handlers
 
 ---
 
@@ -154,6 +159,34 @@ After comprehensive experimentation with feature scaling, class imbalance techni
 
 ---
 
+## Getting Started
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the Streamlit UI locally:
+
+```bash
+python -m streamlit run streamlit_app.py
+```
+
+3. Run the FastAPI service locally:
+
+```bash
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+
+4. Start the complete containerized stack:
+
+```bash
+docker compose up --build
+```
+
+---
+
 ## Deployment Notes
 
 The Streamlit application is provided by `streamlit_app.py`. It loads data, rebuilds preprocessing steps, accepts user input, and predicts churn probability from a serialized model.
@@ -164,7 +197,19 @@ The Streamlit application is provided by `streamlit_app.py`. It loads data, rebu
 python -m streamlit run streamlit_app.py
 ```
 
-> Note: The app expects a saved model file to be available for loading. Follow the notebook training flow or add a compatible serialized model file to run predictions successfully.
+### API server
+
+```bash
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+
+### Start the complete stack with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+> Note: The Docker Compose stack includes the prediction API, Streamlit UI, and an MLflow tracking server.
 
 ### Deployment guidance
 
@@ -178,8 +223,16 @@ python -m streamlit run streamlit_app.py
 - `Telco_Churn_Data_Cleaning_EDA.ipynb` — data cleaning, EDA, and feature engineering
 - `ML_Model_Building_Telecom_Churn.ipynb` — model training, imbalance handling, and hyperparameter tuning with evaluation
 - `streamlit_app.py` — interactive deployment app for churn prediction
+- `api.py` — FastAPI server entrypoint for production inference
+- `telecom_churn/` — package modules for preprocessing, model management, API, batch processing, MLflow, and logging
 - `requirements.txt` — project dependencies
+- `pyproject.toml` — project metadata
+- `docker-compose.yml` — multi-service container orchestration
+- `Dockerfile` — container image definition
+- `pytest.ini` — pytest configuration
 - `Deployment.txt` — deployment instructions
+- `tests/` — unit tests for preprocessing, API payload validation, batch processing, and logging
+- `load_tests/locustfile.py` — API load testing harness
 - **Saved ML Models** (in `Saved ML models/` folder):
   - `tuned_xgb_no_preproc_model.joblib` — XGBoost tuned with RandomizedSearchCV (no preprocessing)
   - `tuned_xgb_standardscaler_model.joblib` — XGBoost tuned with RandomizedSearchCV (StandardScaler)
@@ -187,7 +240,41 @@ python -m streamlit run streamlit_app.py
   - `tuned_xgb_optuna_model.joblib` — XGBoost tuned with Optuna (Bayesian Optimization, StandardScaler)
 
 ---
+## Production Architecture and Deployment
 
+This repo now includes a production-grade multi-service architecture built using:
+
+- `api.py` — FastAPI application entrypoint for model inference
+- `telecom_churn/api.py` — API module with validation, error handling, and batch prediction
+- `Dockerfile` and `docker-compose.yml` — containerized deployment with API, Streamlit UI, and MLflow tracking services
+- `load_tests/locustfile.py` — load testing harness for the prediction endpoint
+- `tests/` — unit tests for preprocessing, logging, batch batching, and request validation
+
+### Run locally
+
+```bash
+python -m streamlit run streamlit_app.py
+```
+
+### API server
+
+```bash
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+
+### Start the complete stack with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+### Run unit tests
+
+```bash
+pytest
+```
+
+---
 ## Key Business Impact
 
 This project helps telecom stakeholders answer the question: "Which customers are most likely to churn, and why?" By identifying churn drivers and building a predictive model, the company can reduce revenue loss and improve retention through targeted interventions.

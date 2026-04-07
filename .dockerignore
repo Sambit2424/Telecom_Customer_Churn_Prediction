@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+mlruns/
+Saved ML models/
+venv/
+*.log
+.DS_Store
+.env

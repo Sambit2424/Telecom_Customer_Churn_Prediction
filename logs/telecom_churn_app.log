@@ -1,0 +1,34 @@
+2026-04-07 21:02:18,323 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,349 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:02:18,349 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,365 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,377 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:02:18,377 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:02:18,378 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,398 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,409 - DataPreprocessor - INFO - Preprocessor fit complete with 8 feature columns
+2026-04-07 21:02:18,410 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:02:18,411 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:18,420 - BatchProcessor - ERROR - Batch prediction failed for record: {'gender': 'Female', 'SeniorCitizen': 0, 'Partner': 'Yes', 'Dependents': 'No', 'tenure': 10, 'PhoneService': 'Yes', 'MultipleLines': 'No', 'InternetService': 'Fiber optic', 'OnlineSecurity': 'No', 'OnlineBackup': 'Yes', 'DeviceProtection': 'No', 'TechSupport': 'No', 'StreamingTV': 'Yes', 'StreamingMovies': 'No', 'Contract': 'Month-to-month', 'PaperlessBilling': 'Yes', 'PaymentMethod': 'Electronic check', 'MonthlyCharges': 72.45, 'TotalCharges': 760.25}, error: float() argument must be a string or a real number, not 'list'
+2026-04-07 21:02:44,752 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:44,764 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:02:44,764 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:44,776 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:44,785 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:02:44,786 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:02:44,786 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:44,803 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:02:44,812 - DataPreprocessor - INFO - Preprocessor fit complete with 8 feature columns
+2026-04-07 21:02:44,813 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:02:44,814 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,682 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,694 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:03:09,695 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,707 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,717 - DataPreprocessor - INFO - Preprocessor fit complete with 21 feature columns
+2026-04-07 21:03:09,717 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:03:09,718 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,734 - DataPreprocessor - INFO - Cleaning raw dataset
+2026-04-07 21:03:09,746 - DataPreprocessor - INFO - Preprocessor fit complete with 8 feature columns
+2026-04-07 21:03:09,747 - DataPreprocessor - INFO - Transforming single record for prediction
+2026-04-07 21:03:09,748 - DataPreprocessor - INFO - Cleaning raw dataset

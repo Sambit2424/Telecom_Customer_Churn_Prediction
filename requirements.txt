@@ -9,3 +9,11 @@ lightgbm
 catboost
 optuna
 matplotlib
+fastapi
+uvicorn[standard]
+mlflow
+python-dotenv
+pydantic
+pytest
+locust
+requests

@@ -50,9 +50,11 @@ flowchart TD
     T --> U[Enable MLflow tracking and containerized deployment]
     S --> V[Local Streamlit deployment]
     U --> W[Docker Compose deployment]
+    V --> X[Cloud deployment on AWS EC2 Instance]
+    W --> X
 ```
 
-This updated workflow captures both the notebook training process and the newer production architecture: package-based preprocessing, FastAPI inference, MLflow tracking, and Docker Compose deployment.
+This updated workflow captures both the notebook training process and the newer production architecture: package-based preprocessing, FastAPI inference, MLflow tracking, Docker Compose deployment, and AWS EC2 cloud deployment.
 
 ---
 

@@ -10,13 +10,16 @@ Churn prediction is critical because acquiring a new customer typically costs mo
 
 ## What this project does
 
-1. Loads and cleans the telecom churn dataset.
-2. Performs exploratory data analysis (EDA) to understand churn drivers.
-3. Engineers features that improve model performance, such as tenure buckets and dummy encoding for categorical variables.
-4. Trains and evaluates multiple classification models.
-5. Handles class imbalance using methods like SMOTE, SMOTEENN, ADASYN, and cost-sensitive learning.
-6. Tunes the best models with randomized search and Optuna.
-7. Deploys a Streamlit app for live churn prediction using a saved model locally and then on AWS EC2 instance.
+1. **Data Cleaning & Preparation:** Loads the telecom churn dataset, handles missing values, converts data types, and creates tenure bins.
+2. **Exploratory Data Analysis (EDA):** Identifies key churn drivers through univariate and bivariate analysis.
+3. **Feature Engineering:** Applies label encoding to the target variable and one-hot encoding to categorical features.
+4. **Train/Test Splitting:** Splits data into 80% training and 20% testing sets using stratified sampling.
+5. **Baseline Model Training:** Tests multiple models (Decision Tree, Random Forest, Logistic Regression, XGBoost, AdaBoost) with and without feature scaling.
+6. **Class Imbalance Handling:** Applies SMOTE, SMOTEENN, ADASYN, and cost-sensitive learning techniques.
+7. **Hyperparameter Optimization:** Performs both RandomizedSearchCV and Optuna (Bayesian Optimization) to find best model parameters.
+8. **Model Evaluation:** Compares models using F1-score, ROC-AUC, accuracy, and confusion matrices.
+9. **Feature Importance Analysis:** Identifies the most influential features for churn prediction.
+10. **Model Deployment:** Saves 4 tuned models and deploys a Streamlit app for interactive churn prediction locally and on AWS EC2.
 
 ---
 
@@ -26,20 +29,30 @@ Churn prediction is critical because acquiring a new customer typically costs mo
 flowchart TD
     A[Load dataset: Customer_Churn.csv] --> B[Data cleaning & sanity checks]
     B --> C[EDA & feature analysis]
-    C --> D[Feature engineering]
-    D --> E[Encode categorical variables]
-    E --> F[Train/test split]
-    F --> G[Feature scaling]
-    G --> H[Train baseline models]
-    H --> I[Handle class imbalance]
-    I --> J[Train advanced models]
-    J --> K[Hyperparameter tuning & optimization]
-    K --> L[Model evaluation & compare metrics]
-    L --> M[Deploy Streamlit prediction app on local]
-    M --> N[Deploy Streamlit prediction app on AWS Cloud - EC2 instance]
+    C --> D[Feature engineering & binning tenure]
+    D --> E[Label encode Churn & one-hot encode categoricals]
+    E --> F[Train/test split 80/20]
+    F --> G{Test scaling impact?}
+    G -->|With StandardScaler| H[Scale features]
+    G -->|Without Scaling| I[Skip scaling]
+    H --> J[Train baseline models]
+    I --> J
+    J --> K[Evaluate baseline models]
+    K --> L[Apply class imbalance techniques]
+    L --> M[SMOTE, SMOTEENN, ADASYN, Cost-Sensitive]
+    M --> N[Train models with imbalance handling]
+    N --> O[Hyperparameter Tuning]
+    O --> P[RandomizedSearchCV & Optuna]
+    P --> Q[Train tuned models]
+    Q --> R[Evaluate: F1-score, ROC-AUC, Confusion Matrix]
+    R --> S[Compare & rank top models]
+    S --> T[Feature importance analysis]
+    T --> U[Save best models]
+    U --> V[Deploy Streamlit app locally]
+    V --> W[Deploy on AWS EC2 Cloud]
 ```
 
-This broader sequence reflects the progression used in the notebooks: from raw data through modeling and into deployment.
+This workflow reflects the complete progression used in the notebooks: from raw data through preprocessing, model selection, advanced tuning, and into deployment.
 
 ---
 
@@ -48,12 +61,12 @@ This broader sequence reflects the progression used in the notebooks: from raw d
 - **Programming language:** Python 3.12+
 - **Data processing:** `pandas`, `numpy`
 - **Visualization & EDA:** `matplotlib`,`seaborn`
-- **Machine learning:** `scikit-learn`(`DecisionTreeClassifier`, `RandomForestClassifier`, `AdaBoostClassifier`)
+- **Machine learning:** `scikit-learn` (`DecisionTreeClassifier`, `RandomForestClassifier`, `AdaBoostClassifier`, `LogisticRegression`)
 - **Gradient boosting:** `xgboost`, `lightgbm`, `catboost`
 - **Imbalanced data handling:** `imbalanced-learn` (`SMOTE`, `SMOTEENN`, `ADASYN`)
-- **Hyperparameter tuning:** `optuna`, `scikit-learn` `RandomizedSearchCV`
+- **Hyperparameter tuning:** `optuna` (Bayesian Optimization), `scikit-learn` `RandomizedSearchCV`
 - **Model serialization:** `joblib`
-- **Deployment:** `streamlit`,`AWS EC2`
+- **Deployment:** `streamlit`, `AWS EC2`
 
 ---
 
@@ -73,17 +86,71 @@ This broader sequence reflects the progression used in the notebooks: from raw d
 - Uses correlation-based feature insights and dummy variable expansion.
 
 ### 2. `ML_Model_Building_Telecom_Churn.ipynb`
-- Prepares the data for machine learning by encoding categorical variables and scaling features.
-- Splits the data into training and testing sets.
-- Trains several models including decision tree, random forest, AdaBoost, and XGBoost.
-- Evaluates the impact of feature scaling with `StandardScaler` and `MinMaxScaler`.
-- Experiments with imbalance handling:
-  - `SMOTE`
-  - `SMOTEENN`
-  - `ADASYN`
-  - cost-sensitive learning with class weights and XGBoost `scale_pos_weight`
-- Performs hyperparameter optimization using `RandomizedSearchCV` and `Optuna`.
-- Compares models using metrics such as classification report and ROC-AUC.
+- **Data Preparation:**
+  - Handles null values and converts `TotalCharges` to numeric format.
+  - Creates tenure bins (1-12, 13-24, 25-36, 37-48, 49-60, 61-72 months) for better feature representation.
+  - Applies label encoding to the target variable (`Churn`: Yes → 1, No → 0).
+  - Uses one-hot encoding for categorical features.
+  - Splits data into training (80%) and testing (20%) sets using `train_test_split`.
+
+- **Feature Scaling & Preprocessing:**
+  - Tests both `StandardScaler` and `MinMaxScaler`.
+  - Applies scaling to prevent data leakage by fitting on training data only.
+
+- **Model Training:**
+  - Trains multiple baseline models: Decision Tree, Random Forest, Logistic Regression, XGBoost, and AdaBoost.
+  - Tests models with and without feature scaling to evaluate impact.
+
+- **Class Imbalance Handling:**
+  - Compares multiple strategies: `SMOTE`, `SMOTEENN`, `ADASYN`, and cost-sensitive learning.
+  - Uses class weights (`scale_pos_weight` for XGBoost, `class_weight` for Logistic Regression).
+  - Identifies that SMOTE combined with Logistic Regression and StandardScaler achieves the best F1-score (0.61).
+
+- **Hyperparameter Optimization:**
+  - Uses `RandomizedSearchCV` with Stratified K-Fold validation (5 splits).
+  - Applies `Optuna` (Bayesian Optimization) for advanced hyperparameter tuning with XGBoost.
+  - Optimizes based on F1-score metric due to class imbalance.
+
+- **Model Evaluation & Comparison:**
+  - Compares F1-scores for the minority class (churn prediction) and overall accuracy across 5 tuned models.
+  - Calculates ROC-AUC scores to differentiate between models with similar F1-scores.
+  - Generates confusion matrices and ROC curves for visual interpretation.
+  - **Top 3 Performing Models:**
+    1. **Tuned XGBoost with StandardScaler and Optuna** – F1: 0.61, ROC-AUC: 0.73
+    2. **Tuned XGBoost with StandardScaler (RandomizedSearchCV)** – F1: 0.61, ROC-AUC: 0.73
+    3. **Tuned XGBoost with No Preprocessing** – F1: 0.61, ROC-AUC: 0.73
+
+- **Feature Importance Analysis:**
+  - Extracts feature importances from the Optuna-tuned XGBoost model.
+  - Visualizes the most influential features for churn prediction.
+
+- **Model Persistence:**
+  - Saves 4 tuned models as joblib files for future deployment:
+    - `tuned_xgb_no_preproc_model.joblib`
+    - `tuned_xgb_standardscaler_model.joblib`
+    - `tuned_xgb_smotenn_model.joblib`
+    - `tuned_xgb_optuna_model.joblib`
+
+---
+
+## Model Performance Summary
+
+After comprehensive experimentation with feature scaling, class imbalance techniques, and hyperparameter tuning, the following are the top-performing models:
+
+| Model | F1-Score (Churn) | Overall Accuracy | ROC-AUC | Feature Scaling | Imbalance Handling |
+|-------|------------------|------------------|---------|-----------------|-------------------|
+| XGBoost + Optuna | 0.61 | 0.73 | 0.73 | StandardScaler | None |
+| XGBoost + RandomizedSearchCV | 0.61 | 0.73 | 0.73 | StandardScaler | None |
+| XGBoost (No Preprocessing) | 0.61 | 0.73 | 0.73 | None | Cost-Sensitive |
+| Logistic Regression + SMOTE | 0.61 | 0.73 | 0.72 | StandardScaler | SMOTE |
+| XGBoost + SMOTEENN | 0.60 | 0.73 | 0.71 | StandardScaler | SMOTEENN |
+
+**Key Findings:**
+- All top models achieve consistent F1-scores of 0.60-0.61 for churn prediction.
+- Optuna (Bayesian Optimization) provides marginal improvements over RandomizedSearchCV.
+- Feature scaling primarily benefits distance-based models like Logistic Regression.
+- Tree-based models (XGBoost) are less sensitive to feature scaling but achieve similar performance.
+- SMOTE and cost-sensitive learning both effectively handle class imbalance.
 
 ---
 
@@ -109,10 +176,15 @@ python -m streamlit run streamlit_app.py
 
 - `Customer_Churn.csv` — raw telecom churn dataset
 - `Telco_Churn_Data_Cleaning_EDA.ipynb` — data cleaning, EDA, and feature engineering
-- `ML_Model_Building_Telecom_Churn.ipynb` — model training, imbalance handling, and tuning
+- `ML_Model_Building_Telecom_Churn.ipynb` — model training, imbalance handling, and hyperparameter tuning with evaluation
 - `streamlit_app.py` — interactive deployment app for churn prediction
 - `requirements.txt` — project dependencies
 - `Deployment.txt` — deployment instructions
+- **Saved ML Models** (in `Saved ML models/` folder):
+  - `tuned_xgb_no_preproc_model.joblib` — XGBoost tuned with RandomizedSearchCV (no preprocessing)
+  - `tuned_xgb_standardscaler_model.joblib` — XGBoost tuned with RandomizedSearchCV (StandardScaler)
+  - `tuned_xgb_smotenn_model.joblib` — XGBoost tuned with RandomizedSearchCV (StandardScaler + SMOTEENN)
+  - `tuned_xgb_optuna_model.joblib` — XGBoost tuned with Optuna (Bayesian Optimization, StandardScaler)
 
 ---
 

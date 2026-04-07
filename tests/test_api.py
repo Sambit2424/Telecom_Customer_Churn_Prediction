@@ -2,6 +2,8 @@ import pytest
 
 from telecom_churn.api import PredictionPayload
 
+# Validation tests for prediction payload schemas
+
 
 def test_prediction_payload_valid():
     record = {

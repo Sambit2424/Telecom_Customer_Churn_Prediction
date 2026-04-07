@@ -1,5 +1,6 @@
 from locust import HttpUser, between, task
 
+# Load test user for calling the churn prediction endpoint
 class ChurnPredictionUser(HttpUser):
     wait_time = between(1, 3)
 

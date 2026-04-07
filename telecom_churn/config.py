@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Application configuration and default filesystem paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT_DIR / "Customer_Churn.csv"
 MODEL_DIR = ROOT_DIR / "Saved ML models"

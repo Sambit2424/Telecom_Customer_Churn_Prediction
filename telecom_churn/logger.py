@@ -5,6 +5,7 @@ from pathlib import Path
 from .config import LOG_DIR, LOG_FILE
 
 
+# LoggerFactory creates a reusable logger with console and rotating file handlers
 class LoggerFactory:
     @classmethod
     def get_logger(cls, name: str = __name__, level: int = logging.INFO) -> logging.Logger:

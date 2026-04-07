@@ -1,4 +1,4 @@
-# Streamlit app for Churn Prediction using ada_boost_churn_model.pkl
+# Streamlit app for telecom churn prediction with notebook-style preprocessing
 
 import streamlit as st
 import pandas as pd
@@ -6,7 +6,7 @@ import numpy as np
 import joblib
 from sklearn.preprocessing import StandardScaler
 
-# Utility functions
+# Load dataset from CSV for feature template and interactive inputs
 @st.cache_data
 def load_data(path='Customer_Churn.csv'):
     df = pd.read_csv(path)
@@ -43,6 +43,7 @@ def build_preprocessor(df):
     }
 
 
+# Convert raw form values into the same encoded and scaled format used by the trained model
 def preprocess_input(user_input, prep):
     # user_input: dict of raw feature values (includes tenure)
     df_in = pd.DataFrame([user_input])
@@ -73,6 +74,7 @@ def preprocess_input(user_input, prep):
     return X_scaled
 
 
+# Load serialized model once and reuse between predictions
 @st.cache_resource
 def load_model(path='Saved ML models/tuned_xgb_optuna_model.joblib'):
     print(f"[DEBUG] load_model: loading model from {path}")
@@ -81,6 +83,7 @@ def load_model(path='Saved ML models/tuned_xgb_optuna_model.joblib'):
     return model
 
 
+# Build the Streamlit UI, collect user values, and show model output
 def main():
     st.set_page_config(page_title='Churn Prediction', layout='centered')
     st.title('📲 Telecom Customer Churn Prediction 🙅')

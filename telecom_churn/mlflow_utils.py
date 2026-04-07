@@ -4,6 +4,7 @@ from .config import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
 from .logger import LoggerFactory
 
 
+# MLFlowTracker wraps mlflow client setup and logging for training runs
 class MLFlowTracker:
     def __init__(self, tracking_uri: str = MLFLOW_TRACKING_URI, experiment_name: str = MLFLOW_EXPERIMENT_NAME):
         try:

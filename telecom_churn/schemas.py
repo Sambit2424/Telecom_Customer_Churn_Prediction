@@ -6,6 +6,7 @@ from typing import Any
 from .config import RAW_FEATURES
 
 
+# Pydantic schemas validate single and batch prediction inputs
 class PredictionPayload(BaseModel):
     input_data: dict[str, Any] = Field(..., description="Feature vector for a single churn prediction")
 

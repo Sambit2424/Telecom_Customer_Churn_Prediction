@@ -9,6 +9,7 @@ from .exceptions import PredictionError
 from .logger import LoggerFactory
 
 
+# BatchProcessor runs prediction workloads concurrently for multiple records
 class BatchProcessor:
     def __init__(self, preprocessor: DataPreprocessor, model_manager: ModelManager, max_workers: int = 4):
         self.preprocessor = preprocessor

@@ -10,6 +10,7 @@ from .preprocessing import DataPreprocessor
 from .schemas import BatchPredictionPayload, PredictionPayload
 
 
+# Create FastAPI app, load the preprocessor and model, and expose prediction endpoints
 def create_app() -> 'FastAPI':
     from fastapi import FastAPI, HTTPException, Request
     from fastapi.responses import JSONResponse
@@ -35,6 +36,7 @@ def create_app() -> 'FastAPI':
     async def prediction_exception_handler(request: Request, exc: PredictionError) -> JSONResponse:
         return JSONResponse(status_code=500, content={"detail": str(exc)})
 
+    # Validation error handler converts invalid user input into a JSON error response
     @app.exception_handler(ValueError)
     async def validation_exception_handler(request: Request, exc: ValueError) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": str(exc)})
@@ -43,6 +45,7 @@ def create_app() -> 'FastAPI':
     async def health_check() -> dict[str, str]:
         return {"status": "healthy", "service": "telecom_churn_prediction_api"}
 
+    # Single-record prediction endpoint
     @app.post("/predict")
     async def predict(payload: PredictionPayload) -> dict[str, Any]:
         try:
@@ -57,6 +60,7 @@ def create_app() -> 'FastAPI':
             logger.error("Prediction failed: %s", exc)
             raise PredictionError(str(exc)) from exc
 
+    # Batch prediction endpoint for concurrent record processing
     @app.post("/batch_predict")
     async def batch_predict(payload: BatchPredictionPayload) -> dict[str, Any]:
         try:

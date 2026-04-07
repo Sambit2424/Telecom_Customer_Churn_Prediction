@@ -29,30 +29,30 @@ Churn prediction is critical because acquiring a new customer typically costs mo
 flowchart TD
     A[Load dataset: Customer_Churn.csv] --> B[Data cleaning & sanity checks]
     B --> C[EDA & feature analysis]
-    C --> D[Feature engineering & binning tenure]
-    D --> E[Label encode Churn & one-hot encode categoricals]
+    C --> D[Feature engineering & tenure binning]
+    D --> E[Encode features and build model inputs]
     E --> F[Train/test split 80/20]
-    F --> G{Test scaling impact?}
-    G -->|With StandardScaler| H[Scale features]
-    G -->|Without Scaling| I[Skip scaling]
+    F --> G{Evaluate scaling strategy}
+    G -->|StandardScaler| H[Scale features]
+    G -->|No scaling| I[Use raw encoded features]
     H --> J[Train baseline models]
     I --> J
     J --> K[Evaluate baseline models]
-    K --> L[Apply class imbalance techniques]
-    L --> M[SMOTE, SMOTEENN, ADASYN, Cost-Sensitive]
+    K --> L[Handle class imbalance]
+    L --> M[SMOTE, SMOTEENN, ADASYN, cost-sensitive]
     M --> N[Train models with imbalance handling]
-    N --> O[Hyperparameter Tuning]
+    N --> O[Hyperparameter tuning]
     O --> P[RandomizedSearchCV & Optuna]
-    P --> Q[Train tuned models]
-    Q --> R[Evaluate: F1-score, ROC-AUC, Confusion Matrix]
-    R --> S[Compare & rank top models]
-    S --> T[Feature importance analysis]
-    T --> U[Save best models]
-    U --> V[Deploy Streamlit app locally]
-    V --> W[Deploy on AWS EC2 Cloud]
+    P --> Q[Save tuned models]
+    Q --> R[Package preprocessing + model management]
+    R --> S[Deploy Streamlit UI for interactive prediction]
+    R --> T[Deploy FastAPI inference service]
+    T --> U[Enable MLflow tracking and containerized deployment]
+    S --> V[Local Streamlit deployment]
+    U --> W[Docker Compose deployment]
 ```
 
-This workflow reflects the complete progression used in the notebooks: from raw data through preprocessing, model selection, advanced tuning, and into deployment.
+This updated workflow captures both the notebook training process and the newer production architecture: package-based preprocessing, FastAPI inference, MLflow tracking, and Docker Compose deployment.
 
 ---
 

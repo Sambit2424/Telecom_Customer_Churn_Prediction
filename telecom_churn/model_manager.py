@@ -12,6 +12,7 @@ from .logger import LoggerFactory
 from .mlflow_utils import MLFlowTracker
 
 
+# ModelManager loads, saves, predicts, and trains the churn model
 class ModelManager:
     def __init__(self, model_path: Path | str = MODEL_PATH):
         self.model_path = Path(model_path)

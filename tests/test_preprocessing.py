@@ -2,6 +2,8 @@ import pandas as pd
 
 from telecom_churn.preprocessing import DataPreprocessor
 
+# Unit tests for preprocessing logic and feature transformation
+
 
 def _build_sample_dataframe() -> pd.DataFrame:
     return pd.DataFrame(

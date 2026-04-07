@@ -4,6 +4,8 @@ from telecom_churn.batch_processor import BatchProcessor
 from telecom_churn.model_manager import ModelManager
 from telecom_churn.preprocessing import DataPreprocessor
 
+# Unit tests for concurrent batch prediction handling
+
 
 class DummyModelManager:
     def predict(self, X):

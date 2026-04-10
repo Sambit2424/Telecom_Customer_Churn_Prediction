@@ -1,27 +1,129 @@
+# ===========================
+# AWS EC2 Deployment Guide - Telecom Customer Churn Prediction
+# Using Docker & Docker Compose
+# ===========================
+
+# ===========================
+# 1. INITIAL SETUP (SSH into EC2 instance)
+# ===========================
+
+# Update system packages
 sudo apt update
-sudo apt-get update
 sudo apt upgrade -y
+
+# Install required tools
 sudo apt install git curl unzip tar make sudo vim wget -y
-git clone https://github.com/pik1989/Cancer-Risk-Prediction.git
-sudo apt install python3-pip
 
-'''
-sudo apt update
-sudo apt install python3-venv python3-full -y
+# ===========================
+# 2. INSTALL DOCKER & DOCKER COMPOSE
+# ===========================
 
-# 2. In your project folder
-cd ~/Cancer-Risk-Prediction
+# Install Docker
+sudo apt install docker.io -y
+sudo usermod -aG docker $USER
+newgrp docker
 
-# 3. Create a virtual environment (named .venv – the dot makes it hidden)
-python3 -m venv .venv
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-# 4. Activate it
-source .venv/bin/activate
-'''
+# Verify installations
+docker --version
+docker-compose --version
 
-pip3 install -r requirements.txt
+# ===========================
+# 3. CLONE PROJECT & DEPLOY
+# ===========================
 
-#Temporary running
-python3 -m streamlit run app.py
-#Permanent running
-nohup python3 -m streamlit run app.py
+# Clone the telecom churn prediction project
+git clone <your-repo-url> telecom_customer_churn_prediction
+cd telecom_customer_churn_prediction
+
+# ===========================
+# 4. CONFIGURE AWS SECURITY GROUP
+# ===========================
+
+# Open required ports in EC2 Security Group:
+# - Port 8000: FastAPI (backend)
+# - Port 8501: Streamlit (frontend)
+# - Port 5000: MLflow (monitoring)
+
+# ===========================
+# 5. BUILD & RUN WITH DOCKER COMPOSE
+# ===========================
+
+# Build Docker images
+docker-compose build
+
+# Start all services in background (-d flag)
+docker-compose up -d
+
+# Verify services are running
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# ===========================
+# 6. ACCESS SERVICES
+# ===========================
+
+# API Endpoint: http://<EC2-IP>:8000
+# - FastAPI docs: http://<EC2-IP>:8000/docs
+# - API health: http://<EC2-IP>:8000/health
+
+# Streamlit Dashboard: http://<EC2-IP>:8501
+
+# MLflow Dashboard: http://<EC2-IP>:5000
+
+# ===========================
+# 7. USEFUL DOCKER COMMANDS
+# ===========================
+
+# Rebuild specific service
+docker-compose up -d --build api
+
+# View service logs
+docker-compose logs api
+docker-compose logs streamlit
+docker-compose logs mlflow
+
+# Execute commands in container
+docker-compose exec api python -m pytest
+
+# Remove all containers & volumes
+docker-compose down -v
+
+# ===========================
+# 8. OPTIONAL: AUTO-START ON REBOOT
+# ===========================
+
+# Enable Docker to start on reboot
+sudo systemctl enable docker
+
+# Create systemd service for docker-compose
+sudo tee /etc/systemd/system/telecom-churn-docker.service > /dev/null << EOF
+[Unit]
+Description=Telecom Churn Prediction Docker Compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ec2-user/telecom_customer_churn_prediction
+ExecStart=/usr/local/bin/docker-compose up
+ExecStop=/usr/local/bin/docker-compose down
+RemainAfterExit=yes
+SyslogIdentifier=telecom-churn
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start service
+sudo systemctl daemon-reload
+sudo systemctl enable telecom-churn-docker.service
+sudo systemctl start telecom-churn-docker.service

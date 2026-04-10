@@ -36,7 +36,7 @@ docker-compose --version
 # ===========================
 
 # Clone the telecom churn prediction project
-git clone <your-repo-url> telecom_customer_churn_prediction
+git clone https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction.git telecom_customer_churn_prediction
 cd telecom_customer_churn_prediction
 
 # ===========================

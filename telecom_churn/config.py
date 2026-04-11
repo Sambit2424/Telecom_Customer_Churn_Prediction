@@ -15,6 +15,10 @@ LOG_FILE = LOG_DIR / "telecom_churn_app.log"
 MLFLOW_TRACKING_URI = "http://localhost:5000"
 MLFLOW_EXPERIMENT_NAME = "telecom_churn_prediction"
 
+# ABSOLUTE PATH for artifacts (Fixes the Permission Denied /app error)
+# This will evaluate to /home/ubuntu/telecom_customer_churn_prediction/mlruns
+MLFLOW_ARTIFACT_ROOT = str(ROOT_DIR / "mlruns")
+
 RAW_FEATURES = [
     "gender",
     "SeniorCitizen",

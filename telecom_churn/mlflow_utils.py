@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .config import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI
+from .config import MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI, MLFLOW_ARTIFACT_ROOT
 from .logger import LoggerFactory
 
 

@@ -4,32 +4,46 @@ Comprehensive MLflow demonstration script.
 This shows how to use MLFlowTracker for logging experiments during model training.
 """
 
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import joblib
 from pathlib import Path
+import gc
+import warnings
 
 from telecom_churn.mlflow_utils import MLFlowTracker
 
+warnings.filterwarnings('ignore')
+
 def load_and_preprocess_data(sample_size=None):
     """Load and preprocess the telecom churn data."""
-    # Load data
-    data_path = Path(__file__).parent / "Customer_Churn.csv"
-    df = pd.read_csv(data_path)
+    try:
+        # Load data
+        data_path = Path(__file__).parent / "Customer_Churn.csv"
+        if not data_path.exists():
+            raise FileNotFoundError(f"Dataset not found at {data_path}")
+        
+        df = pd.read_csv(data_path)
 
-    # Basic preprocessing (simplified for demo)
-    # In real scenario, use your full preprocessing pipeline
-    df = df.dropna()
-    df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
-    df = df.dropna()
+        # Basic preprocessing (simplified for demo)
+        # In real scenario, use your full preprocessing pipeline
+        df = df.dropna()
+        df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+        df = df.dropna()
+        
+        # Validate data is not empty
+        if df.empty:
+            raise ValueError("Dataset is empty after cleaning")
 
-    # Memory optimization: sample data if specified
-    if sample_size and len(df) > sample_size:
-        df = df.sample(n=sample_size, random_state=42)
-        print(f"Sampled {sample_size} rows for memory efficiency")
+        # Memory optimization: sample data if specified
+        if sample_size and len(df) > sample_size:
+            df = df.sample(n=sample_size, random_state=42)
+            print(f"Sampled {sample_size} rows for memory efficiency")
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        raise
 
     # Convert categorical to numeric (simplified)
     categorical_cols = ['gender', 'Partner', 'Dependents', 'PhoneService',
@@ -113,8 +127,7 @@ def train_and_log_model(model_name, model_params, preprocessing_steps=None, samp
         print(f"Metrics: {metrics}")
 
         # Memory cleanup
-        del X, y, X_train, X_test, y_train, y_test, model
-        import gc
+        del X, y, X_train, X_test, y_train, y_test, model, y_pred
         gc.collect()
 
         return metrics
@@ -126,35 +139,39 @@ def run_multiple_experiments(sample_size=1000):
         {
             "name": "rf_baseline",
             "params": {"n_estimators": 50, "max_depth": None},  # Reduced for memory
-            "preprocessing": []
+            "preprocessing": ["none"]
         },
         {
             "name": "rf_tuned_shallow",
             "params": {"n_estimators": 100, "max_depth": 10, "min_samples_split": 5},
-            "preprocessing": ["standard_scaler"]
+            "preprocessing": ["categorical_encoding"]
         },
         {
             "name": "rf_tuned_deep",
             "params": {"n_estimators": 150, "max_depth": 15, "min_samples_leaf": 2},
-            "preprocessing": ["standard_scaler"]
+            "preprocessing": ["categorical_encoding"]
         }
     ]
 
     results = []
 
     for exp in experiments:
-        print(f"\n--- Running experiment: {exp['name']} ---")
-        metrics = train_and_log_model(
-            exp['name'],
-            exp['params'],
-            exp['preprocessing'],
-            sample_size=sample_size
-        )
-        results.append({
-            "experiment": exp['name'],
-            "metrics": metrics,
-            "params": exp['params']
-        })
+        try:
+            print(f"\n--- Running experiment: {exp['name']} ---")
+            metrics = train_and_log_model(
+                exp['name'],
+                exp['params'],
+                exp['preprocessing'],
+                sample_size=sample_size
+            )
+            results.append({
+                "experiment": exp['name'],
+                "metrics": metrics,
+                "params": exp['params']
+            })
+        except Exception as e:
+            print(f"Error in experiment {exp['name']}: {e}")
+            continue
 
     # Print summary
     print("\n" + "="*60)

@@ -9,10 +9,12 @@ LOG_DIR = ROOT_DIR / "logs"
 LOG_FILE = LOG_DIR / "telecom_churn_app.log"
 
 # MLflow configuration
-# For Docker internal networking (use this when running services together)
+# For running mlflow_demo.py on EC2 instance (outside Docker container, localhost access)
+MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+# For Docker internal networking (use inside containers)
 # MLFLOW_TRACKING_URI = "http://mlflow:5000"
-# For external access from outside Docker (replace <EC2_PUBLIC_IP> with your actual EC2 public IP)
-MLFLOW_TRACKING_URI = "http://localhost:5000"
+# For external access from outside EC2 (replace <EC2_PUBLIC_IP> with your actual EC2 public IP)
+# MLFLOW_TRACKING_URI = "http://YOUR_EC2_PUBLIC_IP:5000"
 MLFLOW_EXPERIMENT_NAME = "telecom_churn_prediction"
 
 # ABSOLUTE PATH for artifacts (Fixes the Permission Denied /app error)

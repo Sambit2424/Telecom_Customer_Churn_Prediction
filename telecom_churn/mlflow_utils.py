@@ -6,7 +6,7 @@ from .logger import LoggerFactory
 
 # MLFlowTracker wraps mlflow client setup and logging for training runs
 class MLFlowTracker:
-    def __init__(self, tracking_uri: str = MLFLOW_TRACKING_URI, experiment_name: str = MLFLOW_EXPERIMENT_NAME):
+    def __init__(self, tracking_uri: str = MLFLOW_TRACKING_URI, experiment_name: str = MLFLOW_EXPERIMENT_NAME, artifact_root: str = MLFLOW_ARTIFACT_ROOT):
         try:
             import mlflow
         except ModuleNotFoundError as exc:
@@ -17,10 +17,11 @@ class MLFlowTracker:
         self.mlflow = mlflow
         self.tracking_uri = tracking_uri
         self.experiment_name = experiment_name
+        self.artifact_root = artifact_root
         self.logger = LoggerFactory.get_logger("MLFlowTracker")
         self.mlflow.set_tracking_uri(self.tracking_uri)
         self.mlflow.set_experiment(self.experiment_name)
-        self.logger.info("MLflow configured at %s for experiment %s", self.tracking_uri, self.experiment_name)
+        self.logger.info("MLflow configured at %s for experiment %s with artifact root %s", self.tracking_uri, self.experiment_name, self.artifact_root)
 
     def start_run(self, run_name: str | None = None):
         return self.mlflow.start_run(run_name=run_name)

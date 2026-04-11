@@ -13,9 +13,8 @@ import joblib
 from pathlib import Path
 
 from telecom_churn.mlflow_utils import MLFlowTracker
-from telecom_churn.preprocessing import preprocess_data
 
-def load_and_preprocess_data():
+def load_and_preprocess_data(sample_size=None):
     """Load and preprocess the telecom churn data."""
     # Load data
     data_path = Path(__file__).parent / "Customer_Churn.csv"
@@ -26,6 +25,11 @@ def load_and_preprocess_data():
     df = df.dropna()
     df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
     df = df.dropna()
+
+    # Memory optimization: sample data if specified
+    if sample_size and len(df) > sample_size:
+        df = df.sample(n=sample_size, random_state=42)
+        print(f"Sampled {sample_size} rows for memory efficiency")
 
     # Convert categorical to numeric (simplified)
     categorical_cols = ['gender', 'Partner', 'Dependents', 'PhoneService',
@@ -43,7 +47,7 @@ def load_and_preprocess_data():
 
     return X, y
 
-def train_and_log_model(model_name, model_params, preprocessing_steps=None):
+def train_and_log_model(model_name, model_params, preprocessing_steps=None, sample_size=1000):
     """
     Train a model and log the experiment to MLflow.
 
@@ -51,6 +55,7 @@ def train_and_log_model(model_name, model_params, preprocessing_steps=None):
         model_name: Name for the MLflow run
         model_params: Dictionary of model hyperparameters
         preprocessing_steps: List of preprocessing steps applied
+        sample_size: Number of samples to use (for memory optimization)
     """
 
     # Initialize MLflow tracker
@@ -64,11 +69,14 @@ def train_and_log_model(model_name, model_params, preprocessing_steps=None):
         else:
             tracker.log_params({"preprocessing": "None"})
 
+        # Log sample size for memory tracking
+        tracker.log_params({"sample_size": sample_size})
+
         # Log model parameters
         tracker.log_params(model_params)
 
         # Load and preprocess data
-        X, y = load_and_preprocess_data()
+        X, y = load_and_preprocess_data(sample_size=sample_size)
 
         # Split data
         X_train, X_test, y_train, y_test = train_test_split(
@@ -104,25 +112,30 @@ def train_and_log_model(model_name, model_params, preprocessing_steps=None):
         print(f"Model {model_name} trained and logged!")
         print(f"Metrics: {metrics}")
 
+        # Memory cleanup
+        del X, y, X_train, X_test, y_train, y_test, model
+        import gc
+        gc.collect()
+
         return metrics
 
-def run_multiple_experiments():
+def run_multiple_experiments(sample_size=1000):
     """Run multiple experiments with different hyperparameters."""
 
     experiments = [
         {
             "name": "rf_baseline",
-            "params": {"n_estimators": 100, "max_depth": None},
+            "params": {"n_estimators": 50, "max_depth": None},  # Reduced for memory
             "preprocessing": []
         },
         {
             "name": "rf_tuned_shallow",
-            "params": {"n_estimators": 200, "max_depth": 10, "min_samples_split": 5},
+            "params": {"n_estimators": 100, "max_depth": 10, "min_samples_split": 5},
             "preprocessing": ["standard_scaler"]
         },
         {
             "name": "rf_tuned_deep",
-            "params": {"n_estimators": 300, "max_depth": 20, "min_samples_leaf": 2},
+            "params": {"n_estimators": 150, "max_depth": 15, "min_samples_leaf": 2},
             "preprocessing": ["standard_scaler"]
         }
     ]
@@ -134,7 +147,8 @@ def run_multiple_experiments():
         metrics = train_and_log_model(
             exp['name'],
             exp['params'],
-            exp['preprocessing']
+            exp['preprocessing'],
+            sample_size=sample_size
         )
         results.append({
             "experiment": exp['name'],
@@ -190,8 +204,9 @@ def demonstrate_mlflow_features():
 if __name__ == "__main__":
     print("Starting MLflow demonstration...")
 
-    # Run multiple experiments
-    run_multiple_experiments()
+    # Run multiple experiments with memory optimization
+    sample_size = 2000  # Adjust based on EC2 memory (e.g., 1000-5000)
+    run_multiple_experiments(sample_size=sample_size)
 
     # Demonstrate MLflow features
     demonstrate_mlflow_features()

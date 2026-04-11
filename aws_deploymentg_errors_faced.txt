@@ -1,0 +1,57 @@
+# ============================================================
+# TROUBLESHOOTING LOG: DEPLOYMENT ERRORS & SOLUTIONS
+# ============================================================
+
+ERROR: Permission Denied when installing Docker Compose
+SOLUTION: Ensure the binary is executable with `sudo chmod +x /usr/local/bin/docker-compose` and add the user to the docker group with `sudo usermod -aG docker $USER`, then log out/in or run `newgrp docker`.
+
+ERROR: [Errno 28] No space left on device
+SOLUTION:
+1. Resize the EBS volume in AWS Console if needed.
+2. Run `sudo growpart /dev/nvme0n1 1` and `sudo resize2fs /dev/nvme0n1p1`.
+3. Clean caches and Docker artifacts: `sudo apt-get clean` and `docker system prune -f`.
+
+ERROR: EC2 instance hanging or freezing during Docker/MLflow operations
+SOLUTION: Create a 2GB swap file and enable it:
+```
+sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+ERROR: MLflow server exited with `No such option: --cors-origins`
+SOLUTION: Replace `--cors-origins` with `--cors-allowed-origins "*"` in `docker-compose.yml`.
+
+ERROR: MLflow UI shows `telecom_churn_project` but no models inside
+SOLUTION:
+1. This often means no model artifact was successfully logged.
+2. Ensure the `log_existing_models.py` script has run successfully and that `mlruns` is writable.
+3. After logging, verify artifacts with:
+   `find mlruns -name "*.joblib" 2>/dev/null | wc -l`
+4. If count is 0, fix permissions and rerun the script.
+
+ERROR: [Errno 13] Permission denied: '/app'
+SOLUTION:
+1. Create and fix host volume permissions before starting MLflow:
+   `mkdir -p mlruns && chmod 777 mlruns`
+2. Restart Docker Compose:
+   `docker-compose down && docker-compose up -d mlflow`
+3. If needed, set ownership to the EC2 user:
+   `sudo chown -R ubuntu:ubuntu mlruns`
+4. Make sure the MLflow service in `docker-compose.yml` mounts the host folder with `.:/app` and the command uses `/app/mlruns`.
+
+ERROR: MLflow model registration not visible in Models tab
+SOLUTION:
+1. Run `python register_models.py` after `log_existing_models.py` completes.
+2. Confirm the experiment exists and has runs in MLflow UI.
+
+ERROR: Only API is up in `docker-compose ps`, MLflow is missing
+SOLUTION:
+1. Start MLflow explicitly: `docker-compose up -d mlflow`
+2. Check logs: `docker-compose logs mlflow`
+3. Fix any startup flags, especially the MLflow CLI flag changes above.
+
+ERROR: Local script environment mismatches Windows vs EC2 paths
+SOLUTION: On EC2 use `source telecom_churn/bin/activate`; on Windows use `telecom_churn\Scripts\activate` if testing locally.

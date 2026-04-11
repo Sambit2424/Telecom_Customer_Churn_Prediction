@@ -1,129 +1,71 @@
-# ===========================
-# AWS EC2 Deployment Guide - Telecom Customer Churn Prediction
-# Using Docker & Docker Compose
-# ===========================
+# ============================================================
+# UPDATED AWS EC2 DEPLOYMENT GUIDE - TELECOM CHURN PREDICTION
+# ============================================================
 
-# ===========================
-# 1. INITIAL SETUP (SSH into EC2 instance)
-# ===========================
+# 1. INITIAL SETUP
+sudo apt update && sudo apt upgrade -y
+sudo apt install git curl unzip tar make vim wget python3-venv -y
 
-# Update system packages
-sudo apt update
-sudo apt upgrade -y
-
-# Install required tools
-sudo apt install git curl unzip tar make sudo vim wget -y
-
-# ===========================
 # 2. INSTALL DOCKER & DOCKER COMPOSE
-# ===========================
-
-# Install Docker
 sudo apt install docker.io -y
 sudo usermod -aG docker $USER
 newgrp docker
 
-# Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Verify installations
-docker --version
-docker-compose --version
+# 3. STORAGE & MEMORY OPTIMISATION (Critical for t2.micro)
+# Increase Swap Space (Prevents system hang/freeze during Docker builds and MLflow logging)
+sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
-# ===========================
-# 3. CLONE PROJECT & DEPLOY
-# ===========================
+# Reclaim Disk Space
+sudo apt-get clean
+docker system prune -f
 
-# Clone the telecom churn prediction project
-git clone https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction.git telecom_customer_churn_prediction
-cd telecom_customer_churn_prediction
+# 4. PROJECT DEPLOYMENT
+git clone https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction.git
+cd Telecom_Customer_Churn_Prediction
 
-# ===========================
-# 4. CONFIGURE AWS SECURITY GROUP
-# ===========================
+# Setup Python environment for local scripts and logging
+python3 -m venv telecom_churn
+source telecom_churn/bin/activate
+pip install -r requirements.txt
 
-# Open required ports in EC2 Security Group:
-# - Port 8000: FastAPI (backend)
-# - Port 8501: Streamlit (frontend)
-# - Port 5000: MLflow (monitoring)
+# Create mlruns directory and allow Docker/MLflow to write artifacts
+mkdir -p mlruns
+chmod 777 mlruns
 
-# ===========================
-# 5. BUILD & RUN WITH DOCKER COMPOSE
-# ===========================
+# 5. SERVICE CONFIGURATION CHECKS
+# Ensure docker-compose.yml uses the correct MLflow CLI flags:
+# --cors-allowed-origins "*" and --allowed-hosts "*"
+# Example MLflow command:
+# mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts "*" --cors-allowed-origins "*" --backend-store-uri sqlite:////app/mlflow.db --default-artifact-root /app/mlruns
 
-# Build Docker images
-docker-compose build
-
-# Start all services in background (-d flag)
-docker-compose up -d
-
-# Verify services are running
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-
-# Stop services
+# 6. START SERVICES
 docker-compose down
+# always recreate mlruns if the host volume is stale
+mkdir -p mlruns
+chmod 777 mlruns
 
-# ===========================
-# 6. ACCESS SERVICES
-# ===========================
+docker-compose up -d mlflow
+sleep 5
 
-# API Endpoint: http://<EC2-IP>:8000
-# - FastAPI docs: http://<EC2-IP>:8000/docs
-# - API health: http://<EC2-IP>:8000/health
+docker-compose up -d api streamlit
 
-# Streamlit Dashboard: http://<EC2-IP>:8501
+# 7. LOG EXISTING MODELS TO MLflow
+source telecom_churn/bin/activate
+python log_existing_models.py
 
-# MLflow Dashboard: http://<EC2-IP>:5000
+# 8. OPTIONAL: REGISTER MODELS
+python register_models.py
 
-# ===========================
-# 7. USEFUL DOCKER COMMANDS
-# ===========================
+# 9. VERIFY ARTIFACTS
+find mlruns -name "*.joblib" 2>/dev/null | wc -l
 
-# Rebuild specific service
-docker-compose up -d --build api
-
-# View service logs
-docker-compose logs api
-docker-compose logs streamlit
-docker-compose logs mlflow
-
-# Execute commands in container
-docker-compose exec api python -m pytest
-
-# Remove all containers & volumes
-docker-compose down -v
-
-# ===========================
-# 8. OPTIONAL: AUTO-START ON REBOOT
-# ===========================
-
-# Enable Docker to start on reboot
-sudo systemctl enable docker
-
-# Create systemd service for docker-compose
-sudo tee /etc/systemd/system/telecom-churn-docker.service > /dev/null << EOF
-[Unit]
-Description=Telecom Churn Prediction Docker Compose
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=simple
-WorkingDirectory=/home/ec2-user/telecom_customer_churn_prediction
-ExecStart=/usr/local/bin/docker-compose up
-ExecStop=/usr/local/bin/docker-compose down
-RemainAfterExit=yes
-SyslogIdentifier=telecom-churn
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Enable and start service
-sudo systemctl daemon-reload
-sudo systemctl enable telecom-churn-docker.service
-sudo systemctl start telecom-churn-docker.service
+# 10. ACCESS MLflow UI
+# Use the EC2 public IP or localhost mapping:
+# http://<EC2_PUBLIC_IP>:5000

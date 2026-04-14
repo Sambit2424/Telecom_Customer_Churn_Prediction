@@ -1,5 +1,13 @@
 # Telecom Customer Churn Prediction
 
+Here's the high level 6-phase project workflow
+![Project_Workflow](https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction/blob/main/project_images/project_flow.png)
+
+Here's the Streamlit UI that takes in user inputs (attributes of customer) and shows the probability of that customer churning:
+![Streamlit_Frontend_Part_1](https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction/blob/main/project_images/streamlit_webapp.png)
+![Streamlit_Frontend_Part_2](https://github.com/Sambit2424/Telecom_Customer_Churn_Prediction/blob/main/project_images/streamlit_webapp_prediction.png)
+
+
 ## Project Objective
 
 This project is built to predict the likelihood of customer churn for a telecom company. The main business goal is to identify customers who are most at risk of leaving the service so that the company can take proactive retention actions like targeted offers, service improvements, or customer support outreach.
